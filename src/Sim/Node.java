@@ -78,9 +78,10 @@ public class Node extends SimEnt {
 			{
 				_sentmsg++;
 				send(_peer, new Message(_id, new NetworkAddr(_toNetwork, _toHost),_seq),0);
-				//send(this, new TimerEvent(), this.constant.next()); /* CBR */
+				send(this, new TimerEvent(), this.constant.next()); /* CBR */
 				//send(this, new TimerEvent(), this.gauss.next());	/* Gaussian */
-				send(this, new TimerEvent(), this.poisson.next());	/* Poisson */
+				//send(this, new TimerEvent(), this.poisson.next());	/* Poisson */
+				SimEngine.sent();
 				System.out.println("Node "+_id.networkId()+ "." + _id.nodeId() +" sent message with seq: "+_seq + " at time "+SimEngine.getTime());
 				_seq++;
 			}
@@ -89,7 +90,8 @@ public class Node extends SimEnt {
 		{
 			_recievedmsg++;
             setJitter(ev);
-			System.out.println("Node "+_id.networkId()+ "." + _id.nodeId() +" receives message with seq: "+((Message) ev).seq() + " at time "+SimEngine.getTime()  + " with a delay of " + (SimEngine.getTime()-((Message) ev).start_time) + "ms" + " and a Jitter of: " + this.jitter + "ms");
+			SimEngine.received();
+			System.out.println("Node "+_id.networkId()+ "." + _id.nodeId() +" receives message with seq: "+((Message) ev).seq() + " at time "+SimEngine.getTime()  + " with a delay of " + (SimEngine.getTime()-((Message) ev).start_time) + "ms");
 			if(_recievedmsg > 1) {
                 overallJitter.add(jitter);
             }
@@ -113,8 +115,4 @@ public class Node extends SimEnt {
 		}
 		return average = (average/overallJitter.size())-1;
 	}
-
-    public double sent(){return _sentmsg;}
-
-    public double recieved(){return _recievedmsg;}
 }
