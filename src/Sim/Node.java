@@ -16,7 +16,10 @@ public class Node extends SimEnt {
 	private double prevDelay = 0;
 	private double jitter = 0;
 	private ArrayList<Double> overallJitter = new ArrayList<>();
-	
+	Gaussian gauss;
+	CBR constant;
+	Poisson poisson;
+
 	public Node (int network, int node)
 	{
 		super();
@@ -51,13 +54,15 @@ public class Node extends SimEnt {
 	private int _toNetwork = 0;
 	private int _toHost = 0;
 	
-	public void StartSending(int network, int node, int number, int timeInterval, int startSeq)
+	public void StartSending(int network, int node, int number, int startSeq, CBR c, Gaussian g, Poisson p)
 	{
 		_stopSendingAfter = number;
-		_timeBetweenSending = timeInterval;
 		_toNetwork = network;
 		_toHost = node;
 		_seq = startSeq;
+		this.constant = c;
+		this.gauss = g;
+		this.poisson = p;
 		send(this, new TimerEvent(),0);	
 	}
 	
@@ -73,7 +78,9 @@ public class Node extends SimEnt {
 			{
 				_sentmsg++;
 				send(_peer, new Message(_id, new NetworkAddr(_toNetwork, _toHost),_seq),0);
-				send(this, new TimerEvent(),_timeBetweenSending);
+				//send(this, new TimerEvent(), this.constant.next()); /* CBR */
+				//send(this, new TimerEvent(), this.gauss.next());	/* Gaussian */
+				send(this, new TimerEvent(), this.poisson.next());	/* Poisson */
 				System.out.println("Node "+_id.networkId()+ "." + _id.nodeId() +" sent message with seq: "+_seq + " at time "+SimEngine.getTime());
 				_seq++;
 			}
