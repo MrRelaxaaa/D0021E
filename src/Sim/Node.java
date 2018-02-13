@@ -5,7 +5,6 @@ package Sim;
 
 import com.sun.org.apache.xpath.internal.SourceTree;
 
-import java.util.ArrayList;
 
 public class Node extends SimEnt {
 	private NetworkAddr _id;
@@ -15,15 +14,16 @@ public class Node extends SimEnt {
 	private int _seq = 0;
 	private double prevDelay = 0;
 	private double jitter = 0;
-	private ArrayList<Double> overallJitter = new ArrayList<>();
 	Gaussian gauss;
 	CBR constant;
 	Poisson poisson;
+	Sink sink;
 
-	public Node (int network, int node)
+	public Node (int network, int node, Sink sink)
 	{
 		super();
 		_id = new NetworkAddr(network, node);
+		this.sink = sink;
 	}	
 	
 	
@@ -50,7 +50,6 @@ public class Node extends SimEnt {
 	// In one of the labs you will create some traffic generators
 	
 	private int _stopSendingAfter = 0; //messages
-	private int _timeBetweenSending = 10; //time between messages
 	private int _toNetwork = 0;
 	private int _toHost = 0;
 	
@@ -78,9 +77,9 @@ public class Node extends SimEnt {
 			{
 				_sentmsg++;
 				send(_peer, new Message(_id, new NetworkAddr(_toNetwork, _toHost),_seq),0);
-				send(this, new TimerEvent(), this.constant.next()); /* CBR */
+				//send(this, new TimerEvent(), this.constant.next()); /* CBR */
 				//send(this, new TimerEvent(), this.gauss.next());	/* Gaussian */
-				//send(this, new TimerEvent(), this.poisson.next());	/* Poisson */
+				send(this, new TimerEvent(), this.poisson.next());	/* Poisson */
 				SimEngine.sent();
 				System.out.println("Node "+_id.networkId()+ "." + _id.nodeId() +" sent message with seq: "+_seq + " at time "+SimEngine.getTime());
 				_seq++;
@@ -90,11 +89,10 @@ public class Node extends SimEnt {
 		{
 			_recievedmsg++;
             setJitter(ev);
+            double delay = (SimEngine.getTime()-((Message) ev).start_time);
+            this.sink.addDelay(delay);
 			SimEngine.received();
-			System.out.println("Node "+_id.networkId()+ "." + _id.nodeId() +" receives message with seq: "+((Message) ev).seq() + " at time "+SimEngine.getTime()  + " with a delay of " + (SimEngine.getTime()-((Message) ev).start_time) + "ms");
-			if(_recievedmsg > 1) {
-                overallJitter.add(jitter);
-            }
+			System.out.println("Node "+_id.networkId()+ "." + _id.nodeId() +" receives message with seq: "+((Message) ev).seq() + " at time "+SimEngine.getTime()  + " with delay " + delay + "ms");
         }
 	}
 
@@ -103,16 +101,9 @@ public class Node extends SimEnt {
             double currDelay = Math.abs(SimEngine.getTime()-((Message) ev).start_time);
             this.jitter = Math.abs(currDelay - this.prevDelay);
             this.prevDelay = currDelay;
+			sink.addJitter(jitter);
         }else {
             this.prevDelay = (SimEngine.getTime() - ((Message) ev).start_time);
         }
     }
-
-	public double avgJitter(){
-		double average = 0;
-		for(int i = 0; i < overallJitter.size(); i++){
-			average += overallJitter.get(i);
-		}
-		return average = (average/overallJitter.size())-1;
-	}
 }

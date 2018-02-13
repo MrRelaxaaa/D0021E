@@ -2,9 +2,14 @@ package Sim;
 
 // An example of how to build a topology and starting the simulation engine
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+
 public class Run {
-	public static void main (String [] args)
-	{
+	public static void main (String [] args) throws IOException {
  		//Creates two links
  		Link link1 = new Link();
 		Link link2 = new Link();
@@ -12,8 +17,10 @@ public class Run {
 		
 		// Create two end hosts that will be
 		// communicating via the router
-		Node host1 = new Node(1,1);
-		Node host2 = new Node(2,1);
+		Sink sink1 = new Sink();
+		Sink sink2 = new Sink();
+		Node host1 = new Node(1,1, sink1);
+		Node host2 = new Node(2,1, sink2);
 
 		//Connect links to hosts
 		host1.setPeer(link1);
@@ -29,11 +36,13 @@ public class Run {
 		routeNode.connectInterface(1, link2, host2);
 
 
+		//Traffic-Distribution Generators
 		CBR c = new CBR(5);
-		Gaussian g = new Gaussian(5, 1);
-		Poisson p = new Poisson(4);
+		Gaussian g = new Gaussian(15, 2);
+		Poisson p = new Poisson(10);
+
 		// Generate some traffic
-		host1.StartSending(2, 2,5, 1, c, g, p);
+		host1.StartSending(2, 2,1000, 1, c, g, p);
 		host2.StartSending(1, 1,5, 10, c, g, p);
 		
 		// Start the simulation engine and of we go!
@@ -48,5 +57,15 @@ public class Run {
 		{
 			System.out.println("The motor seems to have a problem, time for service?");
 		}
+		System.out.println("Average Delay Sink 1: " + sink1.getAvgDelay());
+		System.out.println("Average Delay Sink 2: " + sink2.getAvgDelay());
+		System.out.println("Average Jitter Sink 1: " + sink1.getAvgJitter());
+		System.out.println("Average Jitter Sink 2: " + sink2.getAvgJitter());
+		ArrayList<Double> times = p.getTimes();
+		PrintWriter pw = new PrintWriter(new File("test.csv"));
+		for(int i = 0; i < times.size(); i++){
+			pw.println((times.get(i)).toString());
+		}
+		pw.close();
 	}
 }

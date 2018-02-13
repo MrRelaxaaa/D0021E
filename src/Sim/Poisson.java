@@ -1,9 +1,12 @@
 package Sim;
 
+import java.util.ArrayList;
+
 /**
  * Created by Hultstrand on 2018-02-06.
  */
 public class Poisson {
+    public ArrayList<Double> time = new ArrayList<>();
     private double lambda;
 
     public Poisson(double lambda){
@@ -17,6 +20,12 @@ public class Poisson {
             k++;
             p *= Math.random();
         }while(p >= L);
-        return k-1;
+        double poisson = k-1;
+        this.time.add(poisson);
+        return poisson;
+    }
+
+    public ArrayList<Double> getTimes(){
+        return time;
     }
 }
