@@ -2,10 +2,7 @@ package Sim;
 
 // An example of how to build a topology and starting the simulation engine
 
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 
 public class Run {
@@ -31,20 +28,23 @@ public class Run {
 		// the host connected to the other
 		// side of the link is also provided
 		// Note. A switch is created in same way using the Switch class
-		Router routeNode = new Router(2);
+		Router routeNode = new Router(3);
 		routeNode.connectInterface(0, link1, host1);
 		routeNode.connectInterface(1, link2, host2);
 
 
 		//Traffic-Distribution Generators
 		CBR c = new CBR(5);
-		Gaussian g = new Gaussian(15, 2);
+		Gaussian g = new Gaussian(25, 7);
 		Poisson p = new Poisson(10);
 
 		// Generate some traffic
-		host1.StartSending(2, 2,1000, 1, c, g, p);
+		host1.StartSending(2, 1,5, 1, c, g, p);
 		host2.StartSending(1, 1,5, 10, c, g, p);
-		
+
+		MobileEvent mob1 = new MobileEvent(link2, host2);
+		host2.send(link2, mob1, 0);
+
 		// Start the simulation engine and of we go!
 		Thread t=new Thread(SimEngine.instance());
 	
@@ -57,7 +57,7 @@ public class Run {
 		{
 			System.out.println("The motor seems to have a problem, time for service?");
 		}
-		System.out.println("Average Delay Sink 1: " + sink1.getAvgDelay());
+		/*System.out.println("Average Delay Sink 1: " + sink1.getAvgDelay());
 		System.out.println("Average Delay Sink 2: " + sink2.getAvgDelay());
 		System.out.println("Average Jitter Sink 1: " + sink1.getAvgJitter());
 		System.out.println("Average Jitter Sink 2: " + sink2.getAvgJitter());
@@ -66,6 +66,6 @@ public class Run {
 		for(int i = 0; i < times.size(); i++){
 			pw.println((times.get(i)).toString());
 		}
-		pw.close();
+		pw.close();*/
 	}
 }
