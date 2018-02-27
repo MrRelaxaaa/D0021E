@@ -2,18 +2,22 @@ package Sim;
 
 // An example of how to build a topology and starting the simulation engine
 
+import java.io.IOException;
+import java.util.ArrayList;
+
 public class Run {
-	public static void main (String [] args)
-	{
+	public static void main (String [] args) throws IOException {
  		//Creates two links
  		Link link1 = new Link();
-		//Link link2 = new Link();
-		Link link2 = new LossyLink(1, 50, 0.3);
+		Link link2 = new Link();
+		//Link link2 = new LossyLink(1, 50, 0.2);
 		
 		// Create two end hosts that will be
 		// communicating via the router
-		Node host1 = new Node(1,1);
-		Node host2 = new Node(2,1);
+		Sink sink1 = new Sink();
+		Sink sink2 = new Sink();
+		Node host1 = new Node(1,1, sink1);
+		Node host2 = new Node(2,1, sink2);
 
 		//Connect links to hosts
 		host1.setPeer(link1);
@@ -24,16 +28,23 @@ public class Run {
 		// the host connected to the other
 		// side of the link is also provided
 		// Note. A switch is created in same way using the Switch class
-		Router routeNode = new Router(2);
+		Router routeNode = new Router(3);
 		routeNode.connectInterface(0, link1, host1);
 		routeNode.connectInterface(1, link2, host2);
-		
+
+
+		//Traffic-Distribution Generators
+		CBR c = new CBR(5);
+		Gaussian g = new Gaussian(25, 7);
+		Poisson p = new Poisson(10);
+
 		// Generate some traffic
-		// host1 will send 3 messages with time interval 5 to network 2, node 1. Sequence starts with number 1
-		host1.StartSending(2, 2, 500, 5, 1);
-		// host2 will send 2 messages with time interval 10 to network 1, node 1. Sequence starts with number 10
-		host2.StartSending(1, 1, 500, 10, 10);
-		
+		host1.StartSending(2, 1,5, 1, c, g, p);
+		host2.StartSending(1, 1,5, 10, c, g, p);
+
+		MobileEvent mob1 = new MobileEvent(link2, host2);
+		host2.send(link2, mob1, 0);
+
 		// Start the simulation engine and of we go!
 		Thread t=new Thread(SimEngine.instance());
 	
@@ -46,17 +57,15 @@ public class Run {
 		{
 			System.out.println("The motor seems to have a problem, time for service?");
 		}
-		System.out.println("");
-		System.out.println("Simulation outcome...");
-		System.out.println("---------------------------------------");
-		System.out.println("Packets sent: " + (host1.sent()+host2.sent()));
-		System.out.println("Packets recieved: " + (host1.recieved()+host2.recieved()));
-		System.out.printf("Total PLR: %.0f", (1.0-((host1.recieved()+host2.recieved())/(host1.sent()+host2.sent())))*100);
-		System.out.println("%");
-		System.out.printf("Average jitter: %.2f", (host1.avgJitter()+host2.avgJitter())/2);
-		System.out.println("ms");
-		System.out.println("---------------------------------------");
-
-
+		/*System.out.println("Average Delay Sink 1: " + sink1.getAvgDelay());
+		System.out.println("Average Delay Sink 2: " + sink2.getAvgDelay());
+		System.out.println("Average Jitter Sink 1: " + sink1.getAvgJitter());
+		System.out.println("Average Jitter Sink 2: " + sink2.getAvgJitter());
+		ArrayList<Double> times = p.getTimes();
+		PrintWriter pw = new PrintWriter(new File("test.csv"));
+		for(int i = 0; i < times.size(); i++){
+			pw.println((times.get(i)).toString());
+		}
+		pw.close();*/
 	}
 }

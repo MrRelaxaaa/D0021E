@@ -6,7 +6,6 @@ public class Link extends SimEnt{
 	private SimEnt _connectorA=null;
 	private SimEnt _connectorB=null;
 	private int _now=0;
-	private int minDelay, maxDelay = 0;
 	
 	public Link()
 	{
@@ -28,7 +27,7 @@ public class Link extends SimEnt{
 	
 	public void recv(SimEnt src, Event ev)
 	{
-		if (ev instanceof Message)
+		if (ev instanceof Message || ev instanceof MobileEvent || ev instanceof bindUpdateEv || ev instanceof routerInterfaceAck)
 		{
 			System.out.println("Link recv msg, passes it through");
 			if (src == _connectorA)
