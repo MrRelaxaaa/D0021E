@@ -2,26 +2,33 @@ package Sim;
 
 // An example of how to build a topology and starting the simulation engine
 
+import Sim.Entities.*;
+import Sim.Generators.CBR;
+import Sim.Generators.Gaussian;
+import Sim.Generators.Poisson;
+
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class Run {
 	public static void main (String [] args) throws IOException {
  		//Creates two links
  		Link link1 = new Link();
 		Link link2 = new Link();
+		Link link3 = new Link();
 		//Link link2 = new LossyLink(1, 50, 0.2);
 		
 		// Create two end hosts that will be
 		// communicating via the router
-		Sink sink1 = new Sink();
-		Sink sink2 = new Sink();
-		Node host1 = new Node(1,1, sink1);
-		Node host2 = new Node(2,1, sink2);
+		Node host1 = new Node(1,1, new Sink());
+		Node host2 = new Node(2,2, new Sink());
 
 		//Connect links to hosts
 		host1.setPeer(link1);
 		host2.setPeer(link2);
+
+		HomeAgent ha = new HomeAgent(2, 1, new Sink());
+		ha.connectNode(link2);
+		ha.connectRouter(link3);
 
 		// Creates as router and connect
 		// links to it. Information about 
@@ -30,7 +37,7 @@ public class Run {
 		// Note. A switch is created in same way using the Switch class
 		Router routeNode = new Router(3);
 		routeNode.connectInterface(0, link1, host1);
-		routeNode.connectInterface(1, link2, host2);
+		routeNode.connectInterface(1, link3, ha);
 
 
 		//Traffic-Distribution Generators
@@ -42,8 +49,8 @@ public class Run {
 		host1.StartSending(2, 1,5, 1, c, g, p);
 		host2.StartSending(1, 1,5, 10, c, g, p);
 
-		MobileEvent mob1 = new MobileEvent(link2, host2);
-		host2.send(link2, mob1, 0);
+		//MobileEv mob1 = new MobileEv(link2, host2);
+		//host2.send(link2, mob1, 0);
 
 		// Start the simulation engine and of we go!
 		Thread t=new Thread(SimEngine.instance());

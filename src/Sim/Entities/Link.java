@@ -1,8 +1,15 @@
-package Sim;
+package Sim.Entities;
 
 // This class implements a link without any loss, jitter or delay
 
-public class Link extends SimEnt{
+import Sim.Event;
+import Sim.Events.BindUpdateEv;
+import Sim.Events.Message;
+import Sim.Events.MobileEv;
+import Sim.Events.RouterInterfaceAck;
+import Sim.SimEnt;
+
+public class Link extends SimEnt {
 	private SimEnt _connectorA=null;
 	private SimEnt _connectorB=null;
 	private int _now=0;
@@ -23,11 +30,20 @@ public class Link extends SimEnt{
 			_connectorB=connectTo;
 	}
 
+	public void unsetConnector(SimEnt disconnectFrom)
+	{
+		if (_connectorA == disconnectFrom)
+			_connectorA=null;
+		else if (_connectorB == disconnectFrom)
+			_connectorB=null;
+	}
+
+
 	// Called when a message enters the link
 	
 	public void recv(SimEnt src, Event ev)
 	{
-		if (ev instanceof Message || ev instanceof MobileEvent || ev instanceof bindUpdateEv || ev instanceof routerInterfaceAck)
+		if (ev instanceof Message || ev instanceof MobileEv || ev instanceof BindUpdateEv || ev instanceof RouterInterfaceAck)
 		{
 			System.out.println("Link recv msg, passes it through");
 			if (src == _connectorA)

@@ -1,7 +1,9 @@
-package Sim;
+package Sim.Tables;
 
 // Just a class that works like a table entry hosting
 // a link connecting and the node at the other end
+
+import Sim.SimEnt;
 
 public class TableEntry {
 

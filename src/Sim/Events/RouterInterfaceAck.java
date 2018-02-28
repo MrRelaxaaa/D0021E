@@ -1,12 +1,16 @@
-package Sim;
+package Sim.Events;
+
+import Sim.Event;
+import Sim.NetworkAddr;
+import Sim.SimEnt;
 
 /**
  * Created by Hultstrand on 2018-02-23.
  */
-public class routerInterfaceAck implements Event{
+public class RouterInterfaceAck implements Event {
    NetworkAddr _newNetworkAddr;
 
-   routerInterfaceAck(NetworkAddr _newNetworkAddr){
+   public RouterInterfaceAck(NetworkAddr _newNetworkAddr){
        this._newNetworkAddr = _newNetworkAddr;
    }
 

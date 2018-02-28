@@ -1,10 +1,16 @@
-package Sim;
+package Sim.Entities;
 
 // This class implements a node (host) it has an address, a peer that it communicates with
 // and it count messages send and received.
 
-import com.sun.org.apache.xpath.internal.SourceTree;
 
+import Sim.*;
+import Sim.Events.BindUpdateEv;
+import Sim.Events.Message;
+import Sim.Events.RouterInterfaceAck;
+import Sim.Generators.CBR;
+import Sim.Generators.Gaussian;
+import Sim.Generators.Poisson;
 
 public class Node extends SimEnt {
 	private NetworkAddr _id;
@@ -41,6 +47,10 @@ public class Node extends SimEnt {
 			 ((Link) _peer).setConnector(this);
 		}
 	}
+
+	public void unsetPeer(){
+		((Link)_peer).unsetConnector(this);
+	}
 	
 	
 	public NetworkAddr getAddr()
@@ -65,7 +75,7 @@ public class Node extends SimEnt {
 		this.constant = c;
 		this.gauss = g;
 		this.poisson = p;
-		send(this, new TimerEvent(),0);	
+		send(this, new TimerEvent(),0);
 	}
 	
 //**********************************************************************************	
@@ -104,21 +114,21 @@ public class Node extends SimEnt {
 			System.out.println("Node "+_id.networkId()+ "." + _id.nodeId() +" receives message with seq: "
 					+((Message) ev).seq() + " at time "+SimEngine.getTime()  + " with delay " + delay + "ms");
         }
-        if (ev instanceof routerInterfaceAck){
+        if (ev instanceof RouterInterfaceAck){
 			System.out.println("Router interface ACK event");
-			setID(((routerInterfaceAck) ev).getNewAddr());
-			send(_peer, new bindUpdateEv(getAddr(), new NetworkAddr(_toNetwork, _toHost)), 0);
-		}
-        if (ev instanceof bindUpdateEv){
-			System.out.println("BindUpdate event");
-			bindACK(((bindUpdateEv) ev).source().networkId(), ((bindUpdateEv) ev).source().nodeId());
+			NetworkAddr old = getAddr();
+			setID(((RouterInterfaceAck) ev).getNewAddr());
+
+			updateLink();
+			//tell router to connect here
+			send(_peer, new BindUpdateEv(old, getAddr()), 0);
 		}
 	}
 
-	public void bindACK(int _networkID, int _nodeID){
-		_toNetwork = _networkID;
-		_toHost = _nodeID;
-		System.out.println("Recieved bindACK in Node : " + _id.networkId() + "." + _id.nodeId() + " from Node : " + _toNetwork + "." + _toHost);
+	public void updateLink(){
+		unsetPeer();
+		Link link = new Link();
+		setPeer(link);
 	}
 
 	public void setJitter(Event ev){

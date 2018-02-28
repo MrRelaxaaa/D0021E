@@ -1,16 +1,25 @@
-package Sim;
+package Sim.Entities;
 
 // This class implements a simple router
 
-public class Router extends SimEnt{
+import Sim.Event;
+import Sim.Events.BindUpdateEv;
+import Sim.Events.Message;
+import Sim.Events.MobileEv;
+import Sim.Events.RouterInterfaceAck;
+import Sim.NetworkAddr;
+import Sim.SimEnt;
+import Sim.Tables.RouteTableEntry;
 
-	private RouteTableEntry [] _routingTable;
+public class Router extends SimEnt {
+
+	private RouteTableEntry[] _routingTable;
 	private int _interfaces;
 	private int _now=0;
 
 	// When created, number of interfaces are defined
 	
-	Router(int interfaces)
+	public Router(int interfaces)
 	{
 		_routingTable = new RouteTableEntry[interfaces];
 		_interfaces=interfaces;
@@ -66,7 +75,6 @@ public class Router extends SimEnt{
 		for(int i=0; i<_interfaces; i++){
 			if(_routingTable[i] == null){
 				interfaceNumber = i;
-				System.out.println("Free interface no : " + interfaceNumber);
 				break;
 			}
 		}
@@ -88,31 +96,22 @@ public class Router extends SimEnt{
 				System.out.println("Router sends to node: " + ((Message) event).destination().networkId() + "." +
 						((Message) event).destination().nodeId());
 				send(sendNext, event, _now);
-			}else{
-				System.out.println("No node at specified destination... Dropping packet!");
 			}
-		}else if(event instanceof MobileEvent){
+		}else if(event instanceof MobileEv){
 			/*
 			* Change routing table settings
 			* */
-			System.out.println("Node " + ((MobileEvent) event).source().getAddr().networkId() + "." +
-					((MobileEvent) event).source().getAddr().nodeId() + " requesting to move...");
+			System.out.println("Node " + ((MobileEv) event).source().getAddr().networkId() + "." +
+					((MobileEv) event).source().getAddr().nodeId() + " requesting to move...");
 			int newInterface = requestInterface();
-			disconnectInterface(((MobileEvent) event).source());
-			connectInterface(newInterface, ((MobileEvent) event).getLink(), ((MobileEvent) event).source());
-			send(((MobileEvent) event).source(), new routerInterfaceAck(new NetworkAddr(newInterface+1, 1)), 0);
+			disconnectInterface(((MobileEv) event).source());
+			connectInterface(newInterface, ((MobileEv) event).getLink(), ((MobileEv) event).source());
+			send(((MobileEv) event).source(), new RouterInterfaceAck(new NetworkAddr(newInterface+1, 1)), 0);
 
-		}else if(event instanceof bindUpdateEv){
+		}else if(event instanceof BindUpdateEv){
 			/*
-			* Route BindUpdate to CN
+			* Route BindUpdate to HA
 			**/
-			SimEnt sendNext = getInterface(((bindUpdateEv) event).destination().networkId());
-			if(sendNext != null) {
-				System.out.println("Router recieved BindUpdate event from node: " + ((bindUpdateEv) event).source().networkId() +
-						"." + ((bindUpdateEv) event).source().nodeId() + " Sending it too CN: " +
-						((bindUpdateEv) event).destination().networkId() + "." + ((bindUpdateEv) event).destination().nodeId());
-				send(sendNext, event, 0);
-			}
 		}
 	}
 }
