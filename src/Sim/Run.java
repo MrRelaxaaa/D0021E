@@ -30,6 +30,8 @@ public class Run {
 		ha.connectNode(link2);
 		ha.connectRouter(link3);
 
+
+		//dd
 		// Creates as router and connect
 		// links to it. Information about 
 		// the host connected to the other
