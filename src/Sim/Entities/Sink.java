@@ -1,4 +1,4 @@
-package Sim;
+package Sim.Entities;
 
 import java.util.ArrayList;
 

@@ -2,8 +2,13 @@ package Sim;
 
 // An example of how to build a topology and starting the simulation engine
 
+import Sim.Entities.*;
+import Sim.Events.RouterSolicitation;
+import Sim.Generators.CBR;
+import Sim.Generators.Gaussian;
+import Sim.Generators.Poisson;
+
 import java.io.IOException;
-import java.util.ArrayList;
 
 public class Run {
 	public static void main (String [] args) throws IOException {
@@ -14,10 +19,8 @@ public class Run {
 		
 		// Create two end hosts that will be
 		// communicating via the router
-		Sink sink1 = new Sink();
-		Sink sink2 = new Sink();
-		Node host1 = new Node(1,1, sink1);
-		Node host2 = new Node(2,1, sink2);
+		Node host1 = new Node(1,1, new Sink());
+		Node host2 = new Node(2,1, new Sink());
 
 		//Connect links to hosts
 		host1.setPeer(link1);
@@ -28,22 +31,24 @@ public class Run {
 		// the host connected to the other
 		// side of the link is also provided
 		// Note. A switch is created in same way using the Switch class
-		Router routeNode = new Router(3);
+		Router routeNode = new Router(3, 3);
+		Router homeAgent = new Router(3, 3);
+
+		routeNode.set_otherRouter(homeAgent);
+		homeAgent.set_otherRouter(routeNode);
+
 		routeNode.connectInterface(0, link1, host1);
-		routeNode.connectInterface(1, link2, host2);
+		homeAgent.connectInterface(0, link2, host2);
 
-
-		//Traffic-Distribution Generators
-		CBR c = new CBR(5);
-		Gaussian g = new Gaussian(25, 7);
-		Poisson p = new Poisson(10);
+		//Need to set Hosts HomeAgent
+		//Then send RouterSolicitation and UnbindUpdate with delays
+		host2.set_homeAgent(homeAgent);
+		host2.sendRouterSolicitation(routeNode, 10, new NetworkAddr(1, 10));
+		host2.sendReturnToHome(homeAgent, 30);
 
 		// Generate some traffic
-		host1.StartSending(2, 1,5, 1, c, g, p);
-		host2.StartSending(1, 1,5, 10, c, g, p);
-
-		MobileEvent mob1 = new MobileEvent(link2, host2);
-		host2.send(link2, mob1, 0);
+		host1.StartSending(2, 1,5, 1);
+		host2.StartSending(1, 1,5, 10);
 
 		// Start the simulation engine and of we go!
 		Thread t=new Thread(SimEngine.instance());

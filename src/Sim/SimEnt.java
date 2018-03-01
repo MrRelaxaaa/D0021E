@@ -29,7 +29,7 @@ public abstract class SimEnt {
 	
 	protected final EventHandle send(SimEnt destination, Event event, double delayExecution)
 	{
-		// this object is the registrator/source submitting the event
+		// this object is the registrator/get_newAddr submitting the event
 		return SimEngine.instance().register(this, destination, event, delayExecution);
 	}
 	

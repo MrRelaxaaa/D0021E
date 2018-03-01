@@ -1,4 +1,4 @@
-package Sim;
+package Sim.Generators;
 
 import java.util.ArrayList;
 
