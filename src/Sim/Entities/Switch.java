@@ -1,8 +1,13 @@
-package Sim;
+package Sim.Entities;
 
 // This class implements a simple switch
 
-public class Switch extends SimEnt{
+import Sim.Event;
+import Sim.Events.Message;
+import Sim.SimEnt;
+import Sim.Tables.SwitchTableEntry;
+
+public class Switch extends SimEnt {
 
 	private SwitchTableEntry [] _switchTable;
 	private int _ports;

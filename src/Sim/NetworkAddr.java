@@ -9,7 +9,7 @@ public class NetworkAddr {
 	private int _networkId;
 	private int _nodeId;
 	
-	NetworkAddr(int network, int node)
+	public NetworkAddr(int network, int node)
 	{
 		_networkId=network;
 		_nodeId=node;

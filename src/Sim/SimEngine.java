@@ -13,7 +13,9 @@ public final class SimEngine implements Runnable {
 	private boolean _quit = false;
 	private static double _simTime = 0;
 	
-	
+
+	private static double msgSent = 0;
+	private static double msgRecv = 0;
 	// This method is called to when scheduling an event for some target. Examples of events are messages,
 	// timer events etc.
 	
@@ -52,6 +54,8 @@ public final class SimEngine implements Runnable {
 	
 	public void reset()
 	{
+		msgRecv = 0;
+		msgSent = 0;
 		_simTimeTree.clear();
 		_simTime = 0;
 		_quit = false;
@@ -93,6 +97,23 @@ public final class SimEngine implements Runnable {
 				deregister(handleToNextEvent);
 			}
 		} while (!_quit);
+		/*
+		System.out.println();
+		System.out.println("Simulation outcome...");
+		System.out.println("---------------------------------------");
+		System.out.println("Packets sent: " + msgSent);
+		System.out.println("Packets recieved: " + msgRecv);
+		System.out.printf("Total PLR: %.0f%%", (1.0-(msgRecv/msgSent))*100);
+		System.out.println();
+		System.out.println("---------------------------------------");
+		*/
 		reset();
+	}
+
+	public static void received(){
+		msgRecv++;
+	}
+	public static void sent(){
+		msgSent++;
 	}
 }

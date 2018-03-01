@@ -1,9 +1,13 @@
-package Sim;
+package Sim.Entities;
 
 // This class implements a link without any loss, jitter or delay
 
 //@minDelay lower bound for random delay
 //@maxDelay upper bound for random delay
+
+import Sim.Event;
+import Sim.Events.Message;
+import Sim.SimEnt;
 
 import java.util.Random;
 
