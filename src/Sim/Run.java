@@ -15,7 +15,6 @@ public class Run {
  		//Creates two links
  		Link link1 = new Link();
 		Link link2 = new Link();
-		Link link3 = new Link();
 		//Link link2 = new LossyLink(1, 50, 0.2);
 		
 		// Create two end hosts that will be
