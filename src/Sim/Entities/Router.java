@@ -3,17 +3,16 @@ package Sim.Entities;
 // This class implements a simple router
 
 import Sim.Event;
-import Sim.Events.BindUpdateEv;
-import Sim.Events.Message;
-import Sim.Events.MobileEv;
-import Sim.Events.RouterInterfaceAck;
+import Sim.Events.*;
 import Sim.NetworkAddr;
 import Sim.SimEnt;
+import Sim.Tables.AgentTableEntry;
 import Sim.Tables.RouteTableEntry;
 
 public class Router extends SimEnt {
 
 	private RouteTableEntry[] _routingTable;
+	private AgentTableEntry[] _agentTable;
 	private int _interfaces;
 	private int _now=0;
 
@@ -22,6 +21,7 @@ public class Router extends SimEnt {
 	public Router(int interfaces)
 	{
 		_routingTable = new RouteTableEntry[interfaces];
+		_agentTable = new AgentTableEntry[interfaces];
 		_interfaces=interfaces;
 	}
 	
@@ -33,7 +33,6 @@ public class Router extends SimEnt {
 		if (interfaceNumber<_interfaces)
 		{
 			_routingTable[interfaceNumber] = new RouteTableEntry(link, node);
-			System.out.println("Connected to router interface: " + interfaceNumber);
 		}
 		else
 			System.out.println("Trying to connect to port not in router");
@@ -55,10 +54,17 @@ public class Router extends SimEnt {
 	// This method searches for an entry in the routing table that matches
 	// the network number in the destination field of a messages. The link
 	// represents that network number is returned
-	
 	private SimEnt getInterface(int networkAddress)
 	{
 		SimEnt routerInterface=null;
+		for (int i = 0; i < _interfaces; i++) {
+			if (_agentTable[i] != null){
+				if (_agentTable[i].get_id().networkId() == networkAddress){
+					routerInterface = _agentTable[i].get_node();
+					return routerInterface;
+				}
+			}
+		}
 		for(int i=0; i<_interfaces; i++)
 			if (_routingTable[i] != null)
 			{
@@ -81,9 +87,27 @@ public class Router extends SimEnt {
 		return interfaceNumber;
 	}
 
-	
+	private void insertIntoAgentTable(NetworkAddr addr, SimEnt node){
+		for (int i = 0; i < _interfaces; i++) {
+			if(_agentTable[i] == null){
+				_agentTable[i] = new AgentTableEntry(addr, node);
+				break;
+			}
+		}
+	}
+
+	private void deleteFromAgentTable(SimEnt node){
+		for (int i = 0; i < _interfaces; i++) {
+			if(_agentTable[i] != null){
+				if(_agentTable[i].get_node() == node){
+					_agentTable[i] = null;
+					break;
+				}
+			}
+		}
+	}
+
 	// When messages are received at the router this method is called
-	
 	public void recv(SimEnt source, Event event)
 	{
 		if (event instanceof Message)
@@ -97,21 +121,27 @@ public class Router extends SimEnt {
 						((Message) event).destination().nodeId());
 				send(sendNext, event, _now);
 			}
-		}else if(event instanceof MobileEv){
-			/*
-			* Change routing table settings
-			* */
-			System.out.println("Node " + ((MobileEv) event).source().getAddr().networkId() + "." +
-					((MobileEv) event).source().getAddr().nodeId() + " requesting to move...");
-			int newInterface = requestInterface();
-			disconnectInterface(((MobileEv) event).source());
-			connectInterface(newInterface, ((MobileEv) event).getLink(), ((MobileEv) event).source());
-			send(((MobileEv) event).source(), new RouterInterfaceAck(new NetworkAddr(newInterface+1, 1)), 0);
-
-		}else if(event instanceof BindUpdateEv){
-			/*
-			* Route BindUpdate to HA
-			**/
+		} else if ( event instanceof RouterSolicitation){
+			System.out.println();
+			System.out.println("Router received RS from MN " + ((RouterSolicitation) event).get_node().getAddr().networkId() + "." + ((RouterSolicitation) event).get_node().getAddr().nodeId());
+			System.out.println();
+			int assignedInterface = requestInterface();
+			connectInterface(assignedInterface, ((RouterSolicitation) event).get_link(), ((RouterSolicitation) event).get_node());
+			send(((RouterSolicitation) event).get_link(), new RouterAdvertisement(((RouterSolicitation) event).get_addr()), 0);
+		} else if (event instanceof BindUpdate){
+			System.out.println();
+			System.out.println("HomeAgent received BindUpdate from MN " + ((BindUpdate) event).get_node().getAddr().networkId() + "." + ((BindUpdate) event).get_node().getAddr().nodeId());
+			System.out.println();
+			disconnectInterface(((BindUpdate) event).get_node());
+			insertIntoAgentTable(((BindUpdate) event).get_oldAddr(), ((BindUpdate) event).get_node());
+			send(((BindUpdate) event).get_node(), new BindAck(), 0);
+		} else if (event instanceof UnbindUpdate){
+			System.out.println();
+			System.out.println("HomeAgent received UnbindUpdate from MN " + ((UnbindUpdate) event).get_node().getAddr().networkId() + "." + ((UnbindUpdate) event).get_node().getAddr().nodeId());
+			System.out.println();
+			deleteFromAgentTable(((UnbindUpdate) event).get_node());
+			connectInterface(requestInterface(),((UnbindUpdate) event).get_link(), ((UnbindUpdate) event).get_node());
+			send(((UnbindUpdate) event).get_link(), new UnbindAck(), 0);
 		}
 	}
 }

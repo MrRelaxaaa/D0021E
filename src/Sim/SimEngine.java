@@ -97,7 +97,7 @@ public final class SimEngine implements Runnable {
 				deregister(handleToNextEvent);
 			}
 		} while (!_quit);
-
+		/*
 		System.out.println();
 		System.out.println("Simulation outcome...");
 		System.out.println("---------------------------------------");
@@ -106,6 +106,7 @@ public final class SimEngine implements Runnable {
 		System.out.printf("Total PLR: %.0f%%", (1.0-(msgRecv/msgSent))*100);
 		System.out.println();
 		System.out.println("---------------------------------------");
+		*/
 		reset();
 	}
 

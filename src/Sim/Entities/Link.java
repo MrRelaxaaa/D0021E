@@ -3,10 +3,7 @@ package Sim.Entities;
 // This class implements a link without any loss, jitter or delay
 
 import Sim.Event;
-import Sim.Events.BindUpdateEv;
-import Sim.Events.Message;
-import Sim.Events.MobileEv;
-import Sim.Events.RouterInterfaceAck;
+import Sim.Events.*;
 import Sim.SimEnt;
 
 public class Link extends SimEnt {
@@ -43,17 +40,15 @@ public class Link extends SimEnt {
 	
 	public void recv(SimEnt src, Event ev)
 	{
-		if (ev instanceof Message || ev instanceof MobileEv || ev instanceof BindUpdateEv || ev instanceof RouterInterfaceAck)
+		System.out.println("Link recv msg, passes it through");
+		if (src == _connectorA)
 		{
-			System.out.println("Link recv msg, passes it through");
-			if (src == _connectorA)
-			{
-				send(_connectorB, ev, _now);
-			}
-			else
-			{
-				send(_connectorA, ev, _now);
-			}
+			send(_connectorB, ev, _now);
 		}
+		else
+		{
+			send(_connectorA, ev, _now);
+		}
+
 	}
 }
