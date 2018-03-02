@@ -7,5 +7,3 @@ bin/
 doc/
 out/
 .project
-Simulator.iml
-src/Sim/Run.java
