@@ -69,9 +69,11 @@ public class Router extends SimEnt {
 		for(int i=0; i<_interfaces; i++)
 			if (_routingTable[i] != null)
 			{
-				if (((Node) _routingTable[i].node()).getAddr().networkId() == networkAddress)
-				{
-					routerInterface = _routingTable[i].link();
+				if(((Node) _routingTable[i].node()).getAddr() != null){
+					if (((Node) _routingTable[i].node()).getAddr().networkId() == networkAddress)
+					{
+						routerInterface = _routingTable[i].link();
+					}
 				}
 			}
 		return routerInterface;
@@ -126,30 +128,40 @@ public class Router extends SimEnt {
 						((Message) event).destination().nodeId());
 				send(sendNext, event, _now);
 			}else{
-				System.out.println();
-				System.out.println("Node not in this network, relay to other network...");
-				System.out.println();
-				send(_otherRouter, event, 0);
+				if(source instanceof Router){
+					System.out.println();
+					System.out.println("Destination not found... Dropping packet");
+					System.out.println();
+				}else{
+					System.out.println();
+					System.out.println("Node not in this network, relay to other network...");
+					System.out.println();
+					send(_otherRouter, event, 0);
+				}
 			}
 		} else if ( event instanceof RouterSolicitation){
 			System.out.println();
-			System.out.println("Router received RS from MN " + ((RouterSolicitation) event).get_node().getAddr().networkId() + "." + ((RouterSolicitation) event).get_node().getAddr().nodeId());
+			System.out.println("Router received RS from MN ");
 			System.out.println();
 			int assignedInterface = requestInterface();
 			connectInterface(assignedInterface, ((RouterSolicitation) event).get_link(), ((RouterSolicitation) event).get_node());
 			send(((RouterSolicitation) event).get_link(), new RouterAdvertisement(((RouterSolicitation) event).get_addr()), 0);
 		} else if (event instanceof BindUpdate){
-			System.out.println();
-			System.out.println("HomeAgent received BindUpdate from MN " + ((BindUpdate) event).get_node().getAddr().networkId() + "." + ((BindUpdate) event).get_node().getAddr().nodeId());
-			System.out.println();
-			if(((BindUpdate) event).get_flag()){
-				disconnectInterface(((BindUpdate) event).get_node());
-				insertIntoAgentTable(((BindUpdate) event).get_oldAddr(), ((BindUpdate) event).get_node());
-				send(((BindUpdate) event).get_node(), new BindAck(true), 0);
-			}else if (!((BindUpdate) event).get_flag()){
-				deleteFromAgentTable(((BindUpdate) event).get_node());
-				connectInterface(requestInterface(),((BindUpdate) event).get_link(), ((BindUpdate) event).get_node());
-				send(((BindUpdate) event).get_link(), new BindAck(false), 0);
+			if(((BindUpdate) event).get_toHomeAgent()){
+				((BindUpdate) event).set_toHomeAgent(false);
+				send(_otherRouter, event, 0);
+			}else{
+				System.out.println();
+				System.out.println("HomeAgent received BindUpdate from MN " + ((BindUpdate) event).get_node().getAddr().networkId() + "." + ((BindUpdate) event).get_node().getAddr().nodeId());
+				System.out.println();
+				if(((BindUpdate) event).get_flag()){
+					insertIntoAgentTable(((BindUpdate) event).get_oldAddr(), ((BindUpdate) event).get_node());
+					send(((BindUpdate) event).get_node(), new BindAck(true), 0);
+				}else if (!((BindUpdate) event).get_flag()){
+					deleteFromAgentTable(((BindUpdate) event).get_node());
+					connectInterface(requestInterface(),((BindUpdate) event).get_link(), ((BindUpdate) event).get_node());
+					send(((BindUpdate) event).get_link(), new BindAck(false), 0);
+				}
 			}
 		}
 	}

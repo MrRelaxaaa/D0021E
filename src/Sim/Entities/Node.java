@@ -48,10 +48,6 @@ public class Node extends SimEnt {
 		}
 	}
 
-	public void sendRouterSolicitation(Router router, int time, NetworkAddr desiredAddr){
-		send(router, new RouterSolicitation(((Link) _peer), this, desiredAddr), time);
-	}
-
 	public void sendReturnToHome(Router router, int time){
 		BindUpdate bindUpdate = new BindUpdate(_homeID, this, false);
 		bindUpdate.set_link(((Link) _peer));
@@ -98,18 +94,19 @@ public class Node extends SimEnt {
 		{			
 			if (_stopSendingAfter > _sentmsg)
 			{
-				_sentmsg++;
-				send(_peer, new Message(_id, new NetworkAddr(_toNetwork, _toHost),_seq),0);
-
+				if(_id != null){
+					_sentmsg++;
+					send(_peer, new Message(_id, new NetworkAddr(_toNetwork, _toHost),_seq),0);
+					SimEngine.sent();
+					System.out.println("Node "+_id.networkId()+ "." + _id.nodeId() +" sent message with seq: "+_seq
+							+ " at time "+SimEngine.getTime());
+					_seq++;
+				}
 				/*
 				* TimerEvents for CBR, Gaussian and Poisson Generators
 				* */
 				send(this, new TimerEvent(), this.constant.next());
 
-				SimEngine.sent();
-				System.out.println("Node "+_id.networkId()+ "." + _id.nodeId() +" sent message with seq: "+_seq
-						+ " at time "+SimEngine.getTime());
-				_seq++;
 			}
 		}
 		if (ev instanceof Message)
@@ -122,13 +119,23 @@ public class Node extends SimEnt {
 			System.out.println("Node "+_id.networkId()+ "." + _id.nodeId() +" receives message with seq: "
 					+((Message) ev).seq() + " at time "+SimEngine.getTime()  + " with delay " + delay + "ms");
         }
+        if (ev instanceof Handoff){
+			System.out.println();
+			System.out.println("Handoff triggered...");
+			System.out.println();
+			_homeAgent.disconnectInterface(this);
+			_homeID = _id;
+			_id = null;
+			send(((Handoff) ev).get_router(), new RouterSolicitation(((Link) _peer), this, ((Handoff) ev).get_desiredAddr()), 0);
+		}
 		if (ev instanceof RouterAdvertisement){
 			System.out.println();
-			System.out.println("MN " + _id.networkId() + "." + _id.nodeId() +" Received RA from Router...");
+			System.out.println("MN Received RA from Router...");
 			System.out.println();
-			this._homeID = _id;
 			this._id = ((RouterAdvertisement) ev).get_addr();
-			send(_homeAgent, new BindUpdate(_homeID, this, true), 0);
+			BindUpdate bindUpdate = new BindUpdate(_homeID, this, true);
+			bindUpdate.set_toHomeAgent(true);
+			send(_peer, bindUpdate, 0);
 		}
 		if (ev instanceof BindAck){
 			if(((BindAck) ev).get_flag()){

@@ -3,6 +3,7 @@ package Sim;
 // An example of how to build a topology and starting the simulation engine
 
 import Sim.Entities.*;
+import Sim.Events.Handoff;
 
 import java.io.IOException;
 
@@ -36,7 +37,7 @@ public class Run {
 		homeAgent.set_otherRouter(routeNode);
 
 		host2.set_homeAgent(homeAgent);
-		host2.sendRouterSolicitation(routeNode, 10, new NetworkAddr(1, 2));
+		host2.send(host2, new Handoff(routeNode, new NetworkAddr(1, 2)), 10);
 		host2.sendReturnToHome(homeAgent, 20);
 		// Generate some traffic
 		host1.StartSending(2, 1,5, 1);

@@ -11,6 +11,7 @@ import Sim.SimEnt;
  */
 public class BindUpdate implements Event {
     private boolean _connectFlag;
+    private boolean _toHomeAgent;
     private NetworkAddr _oldAddr;
     private Node _node;
     private Link _link;
@@ -26,6 +27,10 @@ public class BindUpdate implements Event {
     public Node get_node() { return _node; }
 
     public void set_link(Link link){ _link = link; }
+
+    public void set_toHomeAgent(boolean toHomeAgent) { _toHomeAgent = toHomeAgent; }
+
+    public boolean get_toHomeAgent() { return _toHomeAgent; }
 
     public Link get_link() { return _link; }
 
