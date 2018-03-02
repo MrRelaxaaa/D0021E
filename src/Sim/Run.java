@@ -3,10 +3,6 @@ package Sim;
 // An example of how to build a topology and starting the simulation engine
 
 import Sim.Entities.*;
-import Sim.Events.RouterSolicitation;
-import Sim.Generators.CBR;
-import Sim.Generators.Gaussian;
-import Sim.Generators.Poisson;
 
 import java.io.IOException;
 

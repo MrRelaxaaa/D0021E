@@ -53,7 +53,9 @@ public class Node extends SimEnt {
 	}
 
 	public void sendReturnToHome(Router router, int time){
-		send(router, new UnbindUpdate(((Link) _peer), this), time);
+		BindUpdate bindUpdate = new BindUpdate(_homeID, this, false);
+		bindUpdate.set_link(((Link) _peer));
+		send(router, bindUpdate, time);
 	}
 	
 	
@@ -126,19 +128,20 @@ public class Node extends SimEnt {
 			System.out.println();
 			this._homeID = _id;
 			this._id = ((RouterAdvertisement) ev).get_addr();
-			send(_homeAgent, new BindUpdate(_homeID, _id, this), 0);
+			send(_homeAgent, new BindUpdate(_homeID, this, true), 0);
 		}
 		if (ev instanceof BindAck){
-			System.out.println();
-			System.out.println("MN " + _id.networkId() + "." + _id.nodeId() +" Received BindAck from Home Agent...");
-			System.out.println();
-		}
-		if (ev instanceof  UnbindAck){
-			System.out.println();
-			System.out.println("MN " + _id.networkId() + "." + _id.nodeId() +" Received UnbindAck from Home Agent, welcome home...");
-			System.out.println();
-			_id = _homeID;
-			_homeID = null;
+			if(((BindAck) ev).get_flag()){
+				System.out.println();
+				System.out.println("MN " + _id.networkId() + "." + _id.nodeId() +" Received BindAck from Home Agent...");
+				System.out.println();
+			}else if(!((BindAck) ev).get_flag()){
+				System.out.println();
+				System.out.println("MN " + _id.networkId() + "." + _id.nodeId() +" Received BindAck from Home Agent, welcome home...");
+				System.out.println();
+				_id = _homeID;
+				_homeID = null;
+			}
 		}
 	}
 
