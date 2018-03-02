@@ -14,6 +14,7 @@ public class Router extends SimEnt {
 	private RouteTableEntry[] _routingTable;
 	private AgentTableEntry[] _agentTable;
 	private int _interfaces;
+	private Router _otherRouter;
 	private int _now=0;
 
 	// When created, number of interfaces are defined
@@ -96,6 +97,10 @@ public class Router extends SimEnt {
 		}
 	}
 
+	public void set_otherRouter(Router router){
+		_otherRouter = router;
+	}
+
 	private void deleteFromAgentTable(SimEnt node){
 		for (int i = 0; i < _interfaces; i++) {
 			if(_agentTable[i] != null){
@@ -120,6 +125,11 @@ public class Router extends SimEnt {
 				System.out.println("Router sends to node: " + ((Message) event).destination().networkId() + "." +
 						((Message) event).destination().nodeId());
 				send(sendNext, event, _now);
+			}else{
+				System.out.println();
+				System.out.println("Node not in this network, relay to other network...");
+				System.out.println();
+				send(_otherRouter, event, 0);
 			}
 		} else if ( event instanceof RouterSolicitation){
 			System.out.println();

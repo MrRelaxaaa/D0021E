@@ -36,6 +36,9 @@ public class Run {
 		routeNode.connectInterface(0, link1, host1);
 		homeAgent.connectInterface(0, link2, host2);
 
+		routeNode.set_otherRouter(homeAgent);
+		homeAgent.set_otherRouter(routeNode);
+
 		host2.set_homeAgent(homeAgent);
 		host2.sendRouterSolicitation(routeNode, 10, new NetworkAddr(1, 2));
 		host2.sendReturnToHome(homeAgent, 20);
