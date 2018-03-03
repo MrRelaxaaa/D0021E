@@ -17,7 +17,7 @@ public class Run {
 		// Create two end hosts that will be
 		// communicating via the router
 		Node host1 = new Node(1,1, new Sink());
-		Node host2 = new Node(2,1, new Sink());
+		Node host2 = new Node(2,4, new Sink());
 
 		//Connect links to hosts
 		host1.setPeer(link1);
@@ -28,19 +28,19 @@ public class Run {
 		// the host connected to the other
 		// side of the link is also provided
 		// Note. A switch is created in same way using the Switch class
-		Router routeNode = new Router(3);
-		Router homeAgent = new Router(3);
+		Router routeNode = new Router(5);
+		Router homeAgent = new Router(5);
 		routeNode.connectInterface(0, link1, host1);
 		homeAgent.connectInterface(0, link2, host2);
 
+		// Tell the two routers about each other
 		routeNode.set_otherRouter(homeAgent);
 		homeAgent.set_otherRouter(routeNode);
 
-		host2.set_homeAgent(homeAgent);
-		host2.send(host2, new Handoff(routeNode, new NetworkAddr(1, 2)), 10);
-		host2.sendReturnToHome(homeAgent, 20);
+		// Trigger a Handoff event saying that the node wants to move from Home network
+		host2.send(host2, new Handoff(routeNode, new NetworkAddr(10, 4), false, homeAgent), 10);
 		// Generate some traffic
-		host1.StartSending(2, 1,5, 1);
+		host1.StartSending(2, 4,5, 1);
 		host2.StartSending(1, 1,5, 10);
 
 		// Start the simulation engine and of we go!

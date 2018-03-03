@@ -2,13 +2,15 @@ package Sim.Entities;
 
 // This class implements a simple router
 
-import Sim.Event;
+import Sim.*;
 import Sim.Events.*;
-import Sim.NetworkAddr;
-import Sim.SimEnt;
 import Sim.Tables.AgentTableEntry;
 import Sim.Tables.RouteTableEntry;
 
+/**
+ * @_agentTable holds information in the Home Agent about nodes that are mobile
+ * @_otherRouter holds the other router so it can be accessed
+ * */
 public class Router extends SimEnt {
 
 	private RouteTableEntry[] _routingTable;
@@ -52,9 +54,9 @@ public class Router extends SimEnt {
 		}
 	}
 
-	// This method searches for an entry in the routing table that matches
-	// the network number in the destination field of a messages. The link
-	// represents that network number is returned
+	// This method searches for an entry in the agent table that matches
+	// the network number in the destination field of a messages, if not found, then check
+	// the routing table. The link represents that network number is returned
 	private SimEnt getInterface(int networkAddress)
 	{
 		SimEnt routerInterface=null;
@@ -79,6 +81,7 @@ public class Router extends SimEnt {
 		return routerInterface;
 	}
 
+	// This method simply returns the first available interface
 	private int requestInterface(){
 		int interfaceNumber = 0;
 		for(int i=0; i<_interfaces; i++){
@@ -90,6 +93,7 @@ public class Router extends SimEnt {
 		return interfaceNumber;
 	}
 
+	// This method adds an entry into the agent table
 	private void insertIntoAgentTable(NetworkAddr addr, SimEnt node){
 		for (int i = 0; i < _interfaces; i++) {
 			if(_agentTable[i] == null){
@@ -99,10 +103,12 @@ public class Router extends SimEnt {
 		}
 	}
 
+	// This method sets the other router
 	public void set_otherRouter(Router router){
 		_otherRouter = router;
 	}
 
+	// This method deletes the specified node from the agent table
 	private void deleteFromAgentTable(SimEnt node){
 		for (int i = 0; i < _interfaces; i++) {
 			if(_agentTable[i] != null){
@@ -128,40 +134,54 @@ public class Router extends SimEnt {
 						((Message) event).destination().nodeId());
 				send(sendNext, event, _now);
 			}else{
+				// If the event was received from another router,
+				// then the destination does not exist. Otherwise
+				// check if the destination is on another router network.
 				if(source instanceof Router){
-					System.out.println();
-					System.out.println("Destination not found... Dropping packet");
-					System.out.println();
+					System.out.println("Router cannot find destination... Dropping packet");
 				}else{
-					System.out.println();
-					System.out.println("Node not in this network, relay to other network...");
-					System.out.println();
+					System.out.println("Router cannot find destination... Sending to other network");
 					send(_otherRouter, event, 0);
 				}
 			}
+			// If the event received is a Router Solicitation,
+			// we need to connect the node that sent the request,
+			// and reply with a Router Advertisement and deliver an IP.
 		} else if ( event instanceof RouterSolicitation){
-			System.out.println();
-			System.out.println("Router received RS from MN ");
-			System.out.println();
+			System.out.println("-----------------------------------");
+			System.out.println("Router received RS from HA ");
+			System.out.println("-----------------------------------");
 			int assignedInterface = requestInterface();
 			connectInterface(assignedInterface, ((RouterSolicitation) event).get_link(), ((RouterSolicitation) event).get_node());
 			send(((RouterSolicitation) event).get_link(), new RouterAdvertisement(((RouterSolicitation) event).get_addr()), 0);
+			// If the event is a Bind Update, we need to know
+			// if the event is being sent to the Home Agent.
+			// If it is being sent to Home Agent, set event
+			// value @_toHomeAgent to false and send to @_otherRouter.
 		} else if (event instanceof BindUpdate){
-			if(((BindUpdate) event).get_toHomeAgent()){
-				((BindUpdate) event).set_toHomeAgent(false);
+			if(((BindUpdate) event).get_toWhom() == BindUpdateToWhom.HA){
+				((BindUpdate) event).set_toWhom(BindUpdateToWhom.THIS);
 				send(_otherRouter, event, 0);
-			}else{
-				System.out.println();
-				System.out.println("HomeAgent received BindUpdate from MN " + ((BindUpdate) event).get_node().getAddr().networkId() + "." + ((BindUpdate) event).get_node().getAddr().nodeId());
-				System.out.println();
-				if(((BindUpdate) event).get_flag()){
+			}else if(((BindUpdate) event).get_toWhom() == BindUpdateToWhom.THIS){
+				System.out.println("-----------------------------------");
+				System.out.println("HomeAgent received BindUpdate from HA " + ((BindUpdate) event).get_node().get_homeID().networkId() + "." +
+						((BindUpdate) event).get_node().get_homeID().nodeId() + " whose new address is: " + ((BindUpdate) event).get_node().getAddr().networkId() + "." +
+						((BindUpdate) event).get_node().getAddr().nodeId());
+				System.out.println("-----------------------------------");
+				if(((BindUpdate) event).connectTo() == BindUpdateConnectFlag.CONNECT){
 					insertIntoAgentTable(((BindUpdate) event).get_oldAddr(), ((BindUpdate) event).get_node());
 					send(((BindUpdate) event).get_node(), new BindAck(true), 0);
-				}else if (!((BindUpdate) event).get_flag()){
+				}else{
 					deleteFromAgentTable(((BindUpdate) event).get_node());
 					connectInterface(requestInterface(),((BindUpdate) event).get_link(), ((BindUpdate) event).get_node());
 					send(((BindUpdate) event).get_link(), new BindAck(false), 0);
 				}
+			}else if(((BindUpdate) event).get_toWhom() == BindUpdateToWhom.CN){
+				System.out.println("-----------------------------------");
+				System.out.println("Router received BindUpdate destined for CN...");
+				System.out.println("-----------------------------------");
+				SimEnt sendNext = getInterface(((BindUpdate) event).get_node().get_CN().networkId());
+				send(sendNext, event, 0);
 			}
 		}
 	}

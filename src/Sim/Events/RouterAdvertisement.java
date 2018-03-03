@@ -6,6 +6,7 @@ import Sim.SimEnt;
 
 /**
  * Created by Hultstrand on 2018-02-27.
+ * @_addr the supplied network address that the node will receive
  */
 public class RouterAdvertisement implements Event {
     private NetworkAddr _addr;

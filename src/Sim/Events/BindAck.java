@@ -5,6 +5,7 @@ import Sim.SimEnt;
 
 /**
  * Created by Hultstrand on 2018-03-01.
+ * @_connectFlag says whether the node has come Home or not
  */
 public class BindAck implements Event{
     private boolean _connectFlag;
