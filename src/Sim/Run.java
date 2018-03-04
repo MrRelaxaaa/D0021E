@@ -28,8 +28,8 @@ public class Run {
 		// the host connected to the other
 		// side of the link is also provided
 		// Note. A switch is created in same way using the Switch class
-		Router routeNode = new Router(5);
-		Router homeAgent = new Router(5);
+		Router routeNode = new Router(5, 5);
+		Router homeAgent = new Router(5, 5);
 		routeNode.connectInterface(0, link1, host1);
 		homeAgent.connectInterface(0, link2, host2);
 

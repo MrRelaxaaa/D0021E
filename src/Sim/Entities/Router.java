@@ -15,16 +15,20 @@ public class Router extends SimEnt {
 
 	private RouteTableEntry[] _routingTable;
 	private AgentTableEntry[] _agentTable;
+	private Message[] _buffer;
+	private int _bufferSize;
 	private int _interfaces;
 	private Router _otherRouter;
 	private int _now=0;
 
 	// When created, number of interfaces are defined
 	
-	public Router(int interfaces)
+	public Router(int interfaces, int bufferSize)
 	{
 		_routingTable = new RouteTableEntry[interfaces];
 		_agentTable = new AgentTableEntry[interfaces];
+		_buffer = new Message[bufferSize];
+		_bufferSize = bufferSize;
 		_interfaces=interfaces;
 	}
 	
@@ -62,7 +66,7 @@ public class Router extends SimEnt {
 		SimEnt routerInterface=null;
 		for (int i = 0; i < _interfaces; i++) {
 			if (_agentTable[i] != null){
-				if (_agentTable[i].get_id().networkId() == networkAddress){
+				if (_agentTable[i].get_oldId().networkId() == networkAddress){
 					routerInterface = _agentTable[i].get_node();
 					return routerInterface;
 				}
@@ -94,10 +98,10 @@ public class Router extends SimEnt {
 	}
 
 	// This method adds an entry into the agent table
-	private void insertIntoAgentTable(NetworkAddr addr, SimEnt node){
+	private void insertIntoAgentTable(NetworkAddr addr, SimEnt node, NetworkAddr newID){
 		for (int i = 0; i < _interfaces; i++) {
 			if(_agentTable[i] == null){
-				_agentTable[i] = new AgentTableEntry(addr, node);
+				_agentTable[i] = new AgentTableEntry(addr, node, newID);
 				break;
 			}
 		}
@@ -138,9 +142,22 @@ public class Router extends SimEnt {
 				// then the destination does not exist. Otherwise
 				// check if the destination is on another router network.
 				if(source instanceof Router){
-					System.out.println("Router cannot find destination... Dropping packet");
+					System.out.println("-----------------------------------");
+					System.out.println("Router cannot find destination for packet with seq: " + ((Message) event).seq() + "... Buffering it...");
+					System.out.println("-----------------------------------");
+					for (int i = 0; i < _bufferSize; i++) {
+						if(_buffer[i] == null){
+							_buffer[i] = ((Message) event);
+							return;
+						}
+					}
+					System.out.println("-----------------------------------");
+					System.out.println("Buffer full, dropping packet with seq: " + ((Message) event).seq());
+					System.out.println("-----------------------------------");
 				}else{
+					System.out.println("-----------------------------------");
 					System.out.println("Router cannot find destination... Sending to other network");
+					System.out.println("-----------------------------------");
 					send(_otherRouter, event, 0);
 				}
 			}
@@ -168,8 +185,24 @@ public class Router extends SimEnt {
 						((BindUpdate) event).get_node().get_homeID().nodeId() + " whose new address is: " + ((BindUpdate) event).get_node().getAddr().networkId() + "." +
 						((BindUpdate) event).get_node().getAddr().nodeId());
 				System.out.println("-----------------------------------");
+				for (int i = 0; i < _bufferSize; i++) {
+					if(_buffer[i] != null){
+						SimEnt dest = getInterface(_buffer[i].destination().networkId());
+						if(dest != null){
+							System.out.println("-----------------------------------");
+							System.out.println("Sending buffered message with seq: " + _buffer[i].seq() + " to node " + _buffer[i].destination().networkId() + _buffer[i].destination().nodeId());
+							System.out.println("-----------------------------------");
+							send(dest, _buffer[i], 0);
+						}else{
+							System.out.println("-----------------------------------");
+							System.out.println("Sending buffered message with seq: " + _buffer[i].seq() + " to other network...");
+							System.out.println("-----------------------------------");
+							send(_otherRouter, _buffer[i], 0);
+						}
+					}
+				}
 				if(((BindUpdate) event).connectTo() == BindUpdateConnectFlag.CONNECT){
-					insertIntoAgentTable(((BindUpdate) event).get_oldAddr(), ((BindUpdate) event).get_node());
+					insertIntoAgentTable(((BindUpdate) event).get_oldAddr(), ((BindUpdate) event).get_node(), ((BindUpdate) event).get_node().getAddr());
 					send(((BindUpdate) event).get_node(), new BindAck(true), 0);
 				}else{
 					deleteFromAgentTable(((BindUpdate) event).get_node());
