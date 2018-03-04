@@ -34,6 +34,8 @@ public class Message implements Event {
 	{
 		return _destination; 
 	}
+
+	public void setNewDestination(NetworkAddr newDestination) { _destination = newDestination; }
 	
 	public int seq()
 	{

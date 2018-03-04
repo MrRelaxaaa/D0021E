@@ -186,18 +186,22 @@ public class Router extends SimEnt {
 						((BindUpdate) event).get_node().getAddr().nodeId());
 				System.out.println("-----------------------------------");
 				for (int i = 0; i < _bufferSize; i++) {
+					/**
+					 * Here is where we need to buffer!!! its not working currently
+					 *
+					 * */
 					if(_buffer[i] != null){
-						SimEnt dest = getInterface(_buffer[i].destination().networkId());
-						if(dest != null){
-							System.out.println("-----------------------------------");
-							System.out.println("Sending buffered message with seq: " + _buffer[i].seq() + " to node " + _buffer[i].destination().networkId() + _buffer[i].destination().nodeId());
-							System.out.println("-----------------------------------");
-							send(dest, _buffer[i], 0);
-						}else{
-							System.out.println("-----------------------------------");
-							System.out.println("Sending buffered message with seq: " + _buffer[i].seq() + " to other network...");
-							System.out.println("-----------------------------------");
-							send(_otherRouter, _buffer[i], 0);
+						System.out.println("-----------------------------------");
+						System.out.println("Sending buffered message with seq: " + _buffer[i].seq() + " to other network...");
+						System.out.println("-----------------------------------");
+						for (int k = 0; k < _interfaces; k++) {
+							if(_agentTable[k] != null){
+								if(_agentTable[k].get_oldId() == _buffer[k].destination()){
+									_buffer[k].setNewDestination(_agentTable[k].get_id());
+									send(_otherRouter, _buffer[i], 0);
+									_buffer[i] = null;
+								}
+							}
 						}
 					}
 				}
