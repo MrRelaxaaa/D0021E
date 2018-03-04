@@ -142,22 +142,22 @@ public class Router extends SimEnt {
 				// then the destination does not exist. Otherwise
 				// check if the destination is on another router network.
 				if(source instanceof Router){
-					System.out.println("-----------------------------------");
+					System.out.println();
 					System.out.println("Router cannot find destination for packet with seq: " + ((Message) event).seq() + "... Buffering it...");
-					System.out.println("-----------------------------------");
+					System.out.println();
 					for (int i = 0; i < _bufferSize; i++) {
 						if(_buffer[i] == null){
 							_buffer[i] = ((Message) event);
 							return;
 						}
 					}
-					System.out.println("-----------------------------------");
+					System.out.println();
 					System.out.println("Buffer full, dropping packet with seq: " + ((Message) event).seq());
-					System.out.println("-----------------------------------");
+					System.out.println();
 				}else{
-					System.out.println("-----------------------------------");
+					System.out.println();
 					System.out.println("Router cannot find destination... Sending to other network");
-					System.out.println("-----------------------------------");
+					System.out.println();
 					send(_otherRouter, event, 0);
 				}
 			}
@@ -165,9 +165,9 @@ public class Router extends SimEnt {
 			// we need to connect the node that sent the request,
 			// and reply with a Router Advertisement and deliver an IP.
 		} else if ( event instanceof RouterSolicitation){
-			System.out.println("-----------------------------------");
+			System.out.println();
 			System.out.println("Router received RS from HA ");
-			System.out.println("-----------------------------------");
+			System.out.println();
 			int assignedInterface = requestInterface();
 			connectInterface(assignedInterface, ((RouterSolicitation) event).get_link(), ((RouterSolicitation) event).get_node());
 			send(((RouterSolicitation) event).get_link(), new RouterAdvertisement(((RouterSolicitation) event).get_addr()), 0);
@@ -180,31 +180,11 @@ public class Router extends SimEnt {
 				((BindUpdate) event).set_toWhom(BindUpdateToWhom.THIS);
 				send(_otherRouter, event, 0);
 			}else if(((BindUpdate) event).get_toWhom() == BindUpdateToWhom.THIS){
-				System.out.println("-----------------------------------");
+				System.out.println();
 				System.out.println("HomeAgent received BindUpdate from HA " + ((BindUpdate) event).get_node().get_homeID().networkId() + "." +
 						((BindUpdate) event).get_node().get_homeID().nodeId() + " whose new address is: " + ((BindUpdate) event).get_node().getAddr().networkId() + "." +
 						((BindUpdate) event).get_node().getAddr().nodeId());
-				System.out.println("-----------------------------------");
-				for (int i = 0; i < _bufferSize; i++) {
-					/**
-					 * Here is where we need to buffer!!! its not working currently
-					 *
-					 * */
-					if(_buffer[i] != null){
-						System.out.println("-----------------------------------");
-						System.out.println("Sending buffered message with seq: " + _buffer[i].seq() + " to other network...");
-						System.out.println("-----------------------------------");
-						for (int k = 0; k < _interfaces; k++) {
-							if(_agentTable[k] != null){
-								if(_agentTable[k].get_oldId() == _buffer[k].destination()){
-									_buffer[k].setNewDestination(_agentTable[k].get_id());
-									send(_otherRouter, _buffer[i], 0);
-									_buffer[i] = null;
-								}
-							}
-						}
-					}
-				}
+				System.out.println();
 				if(((BindUpdate) event).connectTo() == BindUpdateConnectFlag.CONNECT){
 					insertIntoAgentTable(((BindUpdate) event).get_oldAddr(), ((BindUpdate) event).get_node(), ((BindUpdate) event).get_node().getAddr());
 					send(((BindUpdate) event).get_node(), new BindAck(true), 0);
@@ -213,10 +193,26 @@ public class Router extends SimEnt {
 					connectInterface(requestInterface(),((BindUpdate) event).get_link(), ((BindUpdate) event).get_node());
 					send(((BindUpdate) event).get_link(), new BindAck(false), 0);
 				}
+				for (int i = 0; i < _bufferSize; i++) {
+					if(_buffer[i] != null){
+						for (int j = 0; j < _interfaces; j++) {
+							if(_agentTable[j] != null){
+								if(_agentTable[j].get_oldId().networkId() == _buffer[i].destination().networkId()){
+									System.out.println();
+									System.out.println("Sending buffered message with seq: " + _buffer[i].seq() + " to other network...");
+									System.out.println();
+									_buffer[i].setNewDestination(_agentTable[j].get_id());
+									send(_otherRouter, _buffer[i], 0);
+									_buffer[i] = null;
+								}
+							}
+						}
+					}
+				}
 			}else if(((BindUpdate) event).get_toWhom() == BindUpdateToWhom.CN){
-				System.out.println("-----------------------------------");
+				System.out.println();
 				System.out.println("Router received BindUpdate destined for CN...");
-				System.out.println("-----------------------------------");
+				System.out.println();
 				SimEnt sendNext = getInterface(((BindUpdate) event).get_node().get_CN().networkId());
 				send(sendNext, event, 0);
 			}

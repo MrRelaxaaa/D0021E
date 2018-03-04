@@ -115,9 +115,9 @@ public class Node extends SimEnt {
 		 * to the router it wants to connect to.
 		 * */
         if (ev instanceof Handoff){
-			System.out.println("-----------------------------------");
-			System.out.println("Handoff triggered...");
-			System.out.println("-----------------------------------");
+			System.out.println();
+			System.out.println("Handoff triggered in node: " + _id.networkId() + "." + _id.nodeId());
+			System.out.println();
 			if(((Handoff) ev).is_movingHome()){
 				((Handoff) ev).get_disconnectFrom().disconnectInterface(this);
 				send(((Handoff) ev).get_connectTo(), new RouterSolicitation(((Link) _peer), this, ((Handoff) ev).get_desiredAddr()), 0);
@@ -133,13 +133,13 @@ public class Node extends SimEnt {
 		 * set the nodes new _id and send a Bind Update event to Home Agent.
 		 * */
 		if (ev instanceof RouterAdvertisement){
-			System.out.println("-----------------------------------");
+			System.out.println();
 			System.out.println("MN Received RA from Router and has id " + ((RouterAdvertisement) ev).get_addr().networkId() + "." + ((RouterAdvertisement) ev).get_addr().nodeId());
-			System.out.println("-----------------------------------");
+			System.out.println();
 			this._id = ((RouterAdvertisement) ev).get_addr();
 			BindUpdate bindUpdate = new BindUpdate(_homeID, this, BindUpdateToWhom.HA);
 			bindUpdate.set_connectFlag(BindUpdateConnectFlag.CONNECT);
-			send(_peer, bindUpdate, 0);
+			send(_peer, bindUpdate, 10);
 		}
 		/**
 		 * Bind Acknowledgement received from Home Agent,
@@ -147,22 +147,22 @@ public class Node extends SimEnt {
 		 * */
 		if (ev instanceof BindAck){
 			if(((BindAck) ev).get_flag()){
-				System.out.println("-----------------------------------");
+				System.out.println();
 				System.out.println("MN " + _id.networkId() + "." + _id.nodeId() +" Received BindAck from Home Agent...");
-				System.out.println("-----------------------------------");
+				System.out.println();
 				//Update CN with MN's new address
 				BindUpdate bindUpdate = new BindUpdate(_homeID, this, BindUpdateToWhom.CN);
 				send(_peer, bindUpdate, 0);
 			}else if(!((BindAck) ev).get_flag()){
-				System.out.println("-----------------------------------");
+				System.out.println();
 				System.out.println("MN " + _id.networkId() + "." + _id.nodeId() +" Received BindAck from Home Agent, welcome home...");
-				System.out.println("-----------------------------------");
+				System.out.println();
 			}
 		}
 		if (ev instanceof BindUpdate){
-			System.out.println("-----------------------------------");
+			System.out.println();
 			System.out.println("CN Received a BindUpdate, now has new Address of MN...");
-			System.out.println("-----------------------------------");
+			System.out.println();
 			_toNetwork = ((BindUpdate) ev).get_node()._id.networkId();
 			_toHost = ((BindUpdate) ev).get_node()._id.nodeId();
 			_CN = ((BindUpdate) ev).get_node()._id;
