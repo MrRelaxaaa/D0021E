@@ -1,6 +1,5 @@
 package Sim.Tables;
 
-import Sim.Entities.Link;
 import Sim.NetworkAddr;
 import Sim.SimEnt;
 
@@ -15,8 +14,7 @@ public class AgentTableEntry {
         this._id = id;
         this._node = node;
     }
-
-    public SimEnt get_node() { return _node; }
+    public SimEnt get_node() { return this._node; }
 
     public NetworkAddr get_id() { return this._id; }
 }

@@ -16,20 +16,14 @@ public class Message implements Event {
 	private NetworkAddr _destination;
 	private int _seq=0;
 	public double start_time;
-	private int _ttl;
 	
 	public Message (NetworkAddr from, NetworkAddr to, int seq)
 	{
 		_source = from;
 		_destination = to;
 		_seq=seq;
-		_ttl = 1;
 		this.start_time = SimEngine.getTime();
 	}
-
-	public int get_ttl() { return _ttl; }
-
-	public void decrementTimeToLive(){ _ttl--; }
 
 	public NetworkAddr source()
 	{

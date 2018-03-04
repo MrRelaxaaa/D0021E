@@ -9,6 +9,9 @@ import Sim.SimEnt;
 
 /**
  * Created by Hultstrand on 2018-02-27.
+ * @_link the link that the node wishes to connect on
+ * @_node the node that wishes to connect
+ * @_addr the desired network address on the new network
  */
 public class RouterSolicitation implements Event {
     private Link _link;

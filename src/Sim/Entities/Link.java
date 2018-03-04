@@ -27,14 +27,6 @@ public class Link extends SimEnt {
 			_connectorB=connectTo;
 	}
 
-	public void unsetConnector(SimEnt disconnectFrom)
-	{
-		if (_connectorA == disconnectFrom)
-			_connectorA=null;
-		else if (_connectorB == disconnectFrom)
-			_connectorB=null;
-	}
-
 
 	// Called when a message enters the link
 	
