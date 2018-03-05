@@ -146,6 +146,7 @@ public class Node extends SimEnt {
 		 * print some messages.
 		 * */
 		if (ev instanceof BindAck){
+			// Mobile node has moved away from Home Network.
 			if(((BindAck) ev).get_flag()){
 				System.out.println();
 				System.out.println("MN " + _id.networkId() + "." + _id.nodeId() +" Received BindAck from Home Agent...");
@@ -153,6 +154,7 @@ public class Node extends SimEnt {
 				//Update CN with MN's new address
 				BindUpdate bindUpdate = new BindUpdate(_homeID, this, BindUpdateToWhom.CN);
 				send(_peer, bindUpdate, 0);
+			// Mobile node has moved back to Home Network.
 			}else if(!((BindAck) ev).get_flag()){
 				System.out.println();
 				System.out.println("MN " + _id.networkId() + "." + _id.nodeId() +" Received BindAck from Home Agent, welcome home...");
@@ -160,6 +162,7 @@ public class Node extends SimEnt {
 			}
 		}
 		if (ev instanceof BindUpdate){
+			// The CN has received a bind update from MN and has now updated its address.
 			System.out.println();
 			System.out.println("CN Received a BindUpdate, now has new Address of MN...");
 			System.out.println();

@@ -7,10 +7,8 @@ import Sim.SimEnt;
 
 /**
  * Created by Hultstrand on 2018-03-02.
- * @_movingHome used to determine if the Handoff event is used to get back to Home Agent
- * @_router used to determine which router to connect to
- * @_disconnectFrom used to determine which router to disconnect from
- * @_desiredAddr the desired address on the new network
+ * This class represents a handoff event which will be triggered
+ * when a node wishes to make a handoff to another network.
  */
 public class Handoff implements Event{
     private boolean _movingHome;
@@ -18,6 +16,15 @@ public class Handoff implements Event{
     private Router _disconnectFrom;
     private NetworkAddr _desiredAddr;
 
+    /**
+     * Constructor takes the router in which the node wishes to connect to,
+     * the desired address on the new network, a boolean to determine whether it is
+     * moving back to home network or not and lastly the router to disconnect from.
+     * @param connectTo
+     * @param desiredAddr
+     * @param movingHome
+     * @param disconnectFrom
+     */
     public Handoff(Router connectTo, NetworkAddr desiredAddr, boolean movingHome, Router disconnectFrom){
         _connectTo = connectTo;
         _desiredAddr = desiredAddr;

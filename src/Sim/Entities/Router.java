@@ -22,7 +22,13 @@ public class Router extends SimEnt {
 	private int _now=0;
 
 	// When created, number of interfaces are defined
-	
+
+	/**
+	 * Constructor that takes the amount of interfaces on the router and
+	 * the size of the buffer in the router.
+	 * @param interfaces
+	 * @param bufferSize
+	 */
 	public Router(int interfaces, int bufferSize)
 	{
 		_routingTable = new RouteTableEntry[interfaces];
@@ -139,8 +145,7 @@ public class Router extends SimEnt {
 				send(sendNext, event, _now);
 			}else{
 				// If the event was received from another router,
-				// then the destination does not exist. Otherwise
-				// check if the destination is on another router network.
+				// then the destination does not exist buffer the packet.
 				if(source instanceof Router){
 					System.out.println();
 					System.out.println("Router cannot find destination for packet with seq: " + ((Message) event).seq() + "... Buffering it...");
@@ -154,6 +159,8 @@ public class Router extends SimEnt {
 					System.out.println();
 					System.out.println("Buffer full, dropping packet with seq: " + ((Message) event).seq());
 					System.out.println();
+				// If the event was not received by another router,
+				// send it to the other router.
 				}else{
 					System.out.println();
 					System.out.println("Router cannot find destination... Sending to other network");
@@ -166,33 +173,38 @@ public class Router extends SimEnt {
 			// and reply with a Router Advertisement and deliver an IP.
 		} else if ( event instanceof RouterSolicitation){
 			System.out.println();
-			System.out.println("Router received RS from HA ");
+			System.out.println("Router received RS from MN ");
 			System.out.println();
 			int assignedInterface = requestInterface();
 			connectInterface(assignedInterface, ((RouterSolicitation) event).get_link(), ((RouterSolicitation) event).get_node());
 			send(((RouterSolicitation) event).get_link(), new RouterAdvertisement(((RouterSolicitation) event).get_addr()), 0);
-			// If the event is a Bind Update, we need to know
-			// if the event is being sent to the Home Agent.
-			// If it is being sent to Home Agent, set event
-			// value @_toHomeAgent to false and send to @_otherRouter.
+		// If the event is a Bind Update, we need to know
+		// if the event is being sent to the Home Agent.
+		// If it is being sent to Home Agent, set event
+		// value @_toHomeAgent to false and send to @_otherRouter.
 		} else if (event instanceof BindUpdate){
 			if(((BindUpdate) event).get_toWhom() == BindUpdateToWhom.HA){
 				((BindUpdate) event).set_toWhom(BindUpdateToWhom.THIS);
 				send(_otherRouter, event, 0);
 			}else if(((BindUpdate) event).get_toWhom() == BindUpdateToWhom.THIS){
 				System.out.println();
-				System.out.println("HomeAgent received BindUpdate from HA " + ((BindUpdate) event).get_node().get_homeID().networkId() + "." +
+				System.out.println("HomeAgent received BindUpdate from MN " + ((BindUpdate) event).get_node().get_homeID().networkId() + "." +
 						((BindUpdate) event).get_node().get_homeID().nodeId() + " whose new address is: " + ((BindUpdate) event).get_node().getAddr().networkId() + "." +
 						((BindUpdate) event).get_node().getAddr().nodeId());
 				System.out.println();
+				// If the event's Connect flag is set to CONNECT
+				// it means that the MN wishes to disconnect from its HA.
 				if(((BindUpdate) event).connectTo() == BindUpdateConnectFlag.CONNECT){
 					insertIntoAgentTable(((BindUpdate) event).get_oldAddr(), ((BindUpdate) event).get_node(), ((BindUpdate) event).get_node().getAddr());
 					send(((BindUpdate) event).get_node(), new BindAck(true), 0);
+				// Otherwise it means that it wishes to connect to its HA.
 				}else{
 					deleteFromAgentTable(((BindUpdate) event).get_node());
 					connectInterface(requestInterface(),((BindUpdate) event).get_link(), ((BindUpdate) event).get_node());
 					send(((BindUpdate) event).get_link(), new BindAck(false), 0);
 				}
+				// Loop through all buffered messages and send them to their
+				// destinations with the new destination address of the MN.
 				for (int i = 0; i < _bufferSize; i++) {
 					if(_buffer[i] != null){
 						for (int j = 0; j < _interfaces; j++) {
@@ -209,6 +221,7 @@ public class Router extends SimEnt {
 						}
 					}
 				}
+			// If the Bind Update is destined for the CN, send the message to the CN.
 			}else if(((BindUpdate) event).get_toWhom() == BindUpdateToWhom.CN){
 				System.out.println();
 				System.out.println("Router received BindUpdate destined for CN...");

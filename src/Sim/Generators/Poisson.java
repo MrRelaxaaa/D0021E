@@ -4,15 +4,24 @@ import java.util.ArrayList;
 
 /**
  * Created by Hultstrand on 2018-02-06.
+ * This class represents a Poisson distribution generator.
  */
 public class Poisson {
     public ArrayList<Double> time = new ArrayList<>();
     private double lambda;
 
+    /**
+     * Constructor takes a lambda.
+     * @param lambda
+     */
     public Poisson(double lambda){
         this.lambda = lambda;
     }
 
+    /**
+     * Method returns the next Poisson distributed number.
+     * @return
+     */
     public double next(){
         int k = 0;
         double p = 1.0, L = Math.exp(-lambda);

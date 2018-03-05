@@ -6,11 +6,7 @@ import Sim.Entities.Node;
 
 /**
  * Created by Hultstrand on 2018-02-23.
- * @_connectFlag says whether we are connecting to another network or returning home
- * @_toHomeAgent says whether message should go to Home Agent or not
- * @_oldAddr the nodes old network address
- * @_node the node
- * @_link the link
+ * This class represents a Bind Update event.
  */
 
 public class BindUpdate implements Event {
@@ -20,6 +16,13 @@ public class BindUpdate implements Event {
     private BindUpdateToWhom _toWhom;
     private BindUpdateConnectFlag _connectFlag;
 
+    /**
+     * Constructor takes the old address of the sender, the sender/node and
+     * to whom the bind update should be sent to.
+     * @param old
+     * @param node
+     * @param bindUpdateToWhom
+     */
     public BindUpdate(NetworkAddr old, Node node, BindUpdateToWhom bindUpdateToWhom) {
         _oldAddr = old;
         _node = node;
