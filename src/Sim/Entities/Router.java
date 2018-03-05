@@ -43,7 +43,11 @@ public class Router extends SimEnt {
 		((Link) link).setConnector(this);
 	}
 
-	/* Need this to disconnect from interface */
+	/**
+	 * Method used for disconnecting a node from the router and
+	 * removing it from the routing table.
+	 * @param node
+	 */
 	public void disconnectInterface(SimEnt node){
 		for(int i = 0; i < _interfaces; i++){
 			if(_routingTable[i] != null){

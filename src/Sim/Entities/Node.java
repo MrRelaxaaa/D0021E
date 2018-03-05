@@ -109,11 +109,6 @@ public class Node extends SimEnt {
 			System.out.println("Node "+_id.networkId()+ "." + _id.nodeId() +" receives message with seq: "
 					+((Message) ev).seq() + " at time "+SimEngine.getTime()  + " with delay " + delay + "ms");
         }
-        /**
-		 * Handoff event is triggered and disconnects
-		 * from router interfaces and sends Router Solicitation event
-		 * to the router it wants to connect to.
-		 * */
         if (ev instanceof Handoff){
 			System.out.println("-----------------------------------");
 			System.out.println("Handoff triggered...");
@@ -128,10 +123,6 @@ public class Node extends SimEnt {
 				send(((Handoff) ev).get_connectTo(), new RouterSolicitation(((Link) _peer), this, ((Handoff) ev).get_desiredAddr()), 0);
 			}
 		}
-		/**
-		 * Router Advertisement event is received,
-		 * set the nodes new _id and send a Bind Update event to Home Agent.
-		 * */
 		if (ev instanceof RouterAdvertisement){
 			System.out.println("-----------------------------------");
 			System.out.println("MN Received RA from Router and has id " + ((RouterAdvertisement) ev).get_addr().networkId() + "." + ((RouterAdvertisement) ev).get_addr().nodeId());
@@ -141,16 +132,11 @@ public class Node extends SimEnt {
 			bindUpdate.set_connectFlag(BindUpdateConnectFlag.CONNECT);
 			send(_peer, bindUpdate, 0);
 		}
-		/**
-		 * Bind Acknowledgement received from Home Agent,
-		 * print some messages.
-		 * */
 		if (ev instanceof BindAck){
 			if(((BindAck) ev).get_flag()){
 				System.out.println("-----------------------------------");
 				System.out.println("MN " + _id.networkId() + "." + _id.nodeId() +" Received BindAck from Home Agent...");
 				System.out.println("-----------------------------------");
-				//Update CN with MN's new address
 				BindUpdate bindUpdate = new BindUpdate(_homeID, this, BindUpdateToWhom.CN);
 				send(_peer, bindUpdate, 0);
 			}else if(!((BindAck) ev).get_flag()){

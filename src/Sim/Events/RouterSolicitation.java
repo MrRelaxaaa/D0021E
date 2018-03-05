@@ -9,15 +9,22 @@ import Sim.SimEnt;
 
 /**
  * Created by Hultstrand on 2018-02-27.
- * @_link the link that the node wishes to connect on
- * @_node the node that wishes to connect
- * @_addr the desired network address on the new network
+ * This class represents a Router Solicitation event which in MIPv6
+ * is send from a node to routers telling them to make themselves known
+ * by sending a Router Advertisement event as response.
  */
 public class RouterSolicitation implements Event {
     private Link _link;
     private Node _node;
     private NetworkAddr _addr;
 
+    /**
+     * Costuctor takes the link the node wishes to use for connection,
+     * the node itself and the desired address of the node on the new network.
+     * @param link
+     * @param node
+     * @param addr
+     */
     public RouterSolicitation(Link link, Node node, NetworkAddr addr){
         this._link = link;
         this._node = node;
